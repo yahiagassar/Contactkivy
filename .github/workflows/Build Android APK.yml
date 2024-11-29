@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - main  # فرع GitHub الذي يتم بناء التطبيق عند دفع الكود إليه
+      - main
   pull_request:
 
 jobs:
@@ -16,28 +16,41 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # الخطوة 2: إعداد Python و Buildozer
-    - name: Set up Python
+    # الخطوة 2: تثبيت Java و Android SDK
+    - name: Set up Java and Android SDK
+      run: |
+        sudo apt update
+        sudo apt install -y openjdk-11-jdk
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O sdk-tools.zip
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        unzip sdk-tools.zip -d $HOME/android-sdk/cmdline-tools
+        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-31" "build-tools;31.0.0" "ndk;23.1.7779620" "cmake;3.10.2.4988404"
+
+    # الخطوة 3: إعداد Python و Buildozer
+    - name: Set up Python and Buildozer
       uses: actions/setup-python@v3
       with:
         python-version: '3.8'
 
     - name: Install dependencies
       run: |
-        sudo apt update
         sudo apt install -y libffi-dev libssl-dev
-        sudo apt install -y python3-pip virtualenv zip
-        sudo apt install -y default-jdk git
         pip install --upgrade pip setuptools wheel
         pip install buildozer cython==0.29.33
 
-    # الخطوة 3: بناء تطبيق APK باستخدام Buildozer
+    # الخطوة 4: بناء تطبيق APK
     - name: Build APK
+      env:
+        ANDROIDSDK: $HOME/android-sdk
+        ANDROIDNDK: $HOME/android-sdk/ndk/23.1.7779620
+        PATH: $PATH:$ANDROIDSDK/cmdline-tools/latest/bin:$ANDROIDSDK/platform-tools:$ANDROIDSDK/build-tools/31.0.0
       run: |
         sed -i 's/^requirements =.*/requirements = kivy/' buildozer.spec
         buildozer android debug
 
-    # الخطوة 4: رفع ملف APK إلى نتائج الإصدار
+    # الخطوة 5: رفع ملف APK
     - name: Upload APK
       uses: actions/upload-artifact@v3
       with:

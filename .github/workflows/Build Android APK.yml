@@ -43,7 +43,6 @@ jobs:
             libunwind-dev \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
-            && sudo apt-get install -y \
             android-sdk \
             android-sdk-platform-tools \
             android-sdk-build-tools

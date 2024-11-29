@@ -34,7 +34,6 @@ jobs:
     # الخطوة 3: بناء تطبيق APK باستخدام Buildozer
     - name: Build APK
       run: |
-        buildozer init
         sed -i 's/^requirements =.*/requirements = kivy/' buildozer.spec
         buildozer android debug
 

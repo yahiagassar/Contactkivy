@@ -1,67 +1,46 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
     branches:
-      - main
+      - main  # فرع GitHub الذي يتم بناء التطبيق عند دفع الكود إليه
+  pull_request:
 
 jobs:
   build:
+    name: Build APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    # الخطوة 1: استخراج الكود من المستودع
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
+    # الخطوة 2: إعداد Python و Buildozer
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.8'
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip \
-            python3-setuptools \
-            python3-dev \
-            git \
-            openjdk-8-jdk \
-            wget \
-            unzip \
-            zlib1g-dev \
-            libncurses5-dev \
-            libstdc++6 \
-            libffi-dev \
-            libssl-dev \
-            libsqlite3-dev \
-            libjpeg-dev \
-            libfreetype6-dev \
-            libpng-dev \
-            libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev \
-            libunwind-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev \
-            android-sdk \
-            android-sdk-platform-tools \
-            android-sdk-build-tools \
-            && sudo apt-get install -y \
-            android-tools-adb \
-            android-tools-aapt \
-            android-tools-aidl
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y libffi-dev libssl-dev
+        sudo apt install -y python3-pip virtualenv zip
+        sudo apt install -y default-jdk git
+        pip install --upgrade pip setuptools wheel
+        pip install buildozer cython==0.29.33
 
-      - name: Install Buildozer
-        run: |
-          pip install buildozer
-          pip install cython
+    # الخطوة 3: بناء تطبيق APK باستخدام Buildozer
+    - name: Build APK
+      run: |
+        buildozer init
+        sed -i 's/^requirements =.*/requirements = kivy/' buildozer.spec
+        buildozer android debug
 
-      - name: Build APK
-        run: |
-          buildozer -v android debug
-          
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: android-apk
-          path: bin/*.apk
+    # الخطوة 4: رفع ملف APK إلى نتائج الإصدار
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: myapp-debug.apk
+        path: bin/*.apk

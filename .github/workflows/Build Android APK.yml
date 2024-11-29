@@ -1,4 +1,4 @@
-name: Build Android Apk
+name: Build Android APK
 
 on:
   push:
@@ -39,7 +39,10 @@ jobs:
             libfreetype6-dev \
             libpng-dev \
             libgstreamer1.0-dev \
-            libgstreamer-plugins-base1.0-dev
+            libgstreamer-plugins-base1.0-dev \
+            libunwind-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev
 
       - name: Install Buildozer
         run: |
